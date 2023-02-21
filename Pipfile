@@ -18,6 +18,7 @@ pyyaml = "==6.0"
 sqlparse = "==0.4.3"
 uritemplate = "==4.1.1"
 djangorestframework-simplejwt = "*"
+django-cors-headers = "*"
 
 [dev-packages]
 
