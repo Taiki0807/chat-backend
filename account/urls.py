@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework import routers
-from .views import TokenObtainView,TokenDeleteView,TokenRefreshView,AccountRegister,GetAccountInfo,refresh_get
+from .views import TokenObtainView,TokenDeleteView,TokenRefreshView,AccountRegister,GetAccountInfo,refresh_get,GetAccountStatus
 
 urlpatterns = [
     path('register/', AccountRegister.as_view()),
@@ -8,5 +8,6 @@ urlpatterns = [
     path('login/', TokenObtainView.as_view()),
     path('logout/', TokenDeleteView.as_view()),
     path('refresh/', TokenRefreshView.as_view()),
+    path('status/', GetAccountStatus.as_view()),
     path('refresh-token/', refresh_get),
 ]

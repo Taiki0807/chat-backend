@@ -1,7 +1,7 @@
 from django.middleware.csrf import get_token
 from django.http import JsonResponse, HttpResponse
 from django.conf import settings
-from rest_framework import status, response, permissions,generics
+from rest_framework import status, response, permissions,generics,authentication
 from rest_framework.views import APIView
 from rest_framework_simplejwt import views as jwt_views
 from rest_framework_simplejwt import exceptions as jwt_exp
@@ -24,7 +24,11 @@ class TokenObtainView(jwt_views.TokenObtainPairView):
             raise jwt_exp.InvalidToken(e.args[0])
 
         # レスポンスオブジェクトの作成
-        res = response.Response(status=status.HTTP_200_OK)
+        res = response.Response(data={
+            'success': 1,
+        },
+            status=status.HTTP_200_OK
+        )
 
         # Cookieの設定
         res.set_cookie(
@@ -44,7 +48,6 @@ class TokenObtainView(jwt_views.TokenObtainPairView):
 
         # csrftokenを設定
         get_token(request)
-
         return res
 
 def refresh_get(request):
@@ -120,3 +123,20 @@ class GetAccountInfo(APIView):
         },
             status=status.HTTP_200_OK
         )
+class GetAccountStatus(APIView):
+    """
+    状態を取得
+    """
+    permission_classes = [permissions.AllowAny]
+    authentication_classes = []
+    def get(self, request):
+        if request.COOKIES.get('access_token'):
+            # cookieが存在する場合
+            return Response({
+                'status': 1,
+            }, status=status.HTTP_200_OK)
+        else:
+            # cookieが存在しない場合
+            return Response({
+                'status': 0,
+            }, status=status.HTTP_200_OK)
