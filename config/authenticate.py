@@ -3,16 +3,17 @@ from rest_framework.authentication import CSRFCheck
 from rest_framework import exceptions
 
 
-def enforce_csrf(request):
-    """
-    CSRF用のバリデーション
-    """
-    check = CSRFCheck()
-    check.process_request(request)
-    reason = check.process_view(request, None, (), {})
-    if reason:
-        raise exceptions.PermissionDenied('CSRF Failed: %s' % reason)
 
+def enforce_csrf(get_response):
+    def middleware(request):
+        check = CSRFCheck()
+        check.process_request(request)
+        reason = check.process_view(request, None, (), {})
+        if reason:
+            raise exceptions.PermissionDenied('CSRF Failed: %s' % reason)
+        response = get_response(request)
+        return response
+    return middleware
 
 class CustomAuthentication(JWTAuthentication):
     """
@@ -24,7 +25,6 @@ class CustomAuthentication(JWTAuthentication):
 
         if header is None:
             raw_token = request.COOKIES.get('access_token') or None
-            # print(request.COOKIES['access_token'])
         else:
             raw_token = self.get_raw_token(header)
         if raw_token is None:
