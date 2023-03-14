@@ -20,6 +20,11 @@ uritemplate = "==4.1.1"
 djangorestframework-simplejwt = "==5.2.2"
 django-cors-headers = "==3.13.0"
 pyjwt = "==2.6.0"
+channels = "*"
+shortuuid = "*"
+django-shortuuidfield = "*"
+pillow = "*"
+daphne = "*"
 
 [dev-packages]
 
