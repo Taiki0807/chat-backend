@@ -3,13 +3,13 @@ from django.db import models
 # Create your models here.
 from django.utils import timezone
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser, _user_has_perm
-
+from shortuuidfield import ShortUUIDField
 
 class AccountManager(BaseUserManager):
     """
     ユーザーを作成する
     """
-    def create_user(self, request, **extra_fields):
+    def create_user(self, request,image=None, **extra_fields):
         now = timezone.now()
         if not request['username']:
             raise ValueError('Users must have a username')
@@ -18,6 +18,7 @@ class AccountManager(BaseUserManager):
             username=request['username'],
             is_active=True,
             date_joined=now,
+            image=image
         )
 
         user.set_password(request['password'])
@@ -43,7 +44,6 @@ class Account(AbstractBaseUser):
     """
     class Meta(object):
         db_table = 'account'
-
     username = models.CharField(verbose_name='ユーザ名', max_length=255, unique=True)
     email = models.EmailField(verbose_name='Eメール', max_length=255, null=True)
     is_active = models.BooleanField(default=True)
@@ -51,6 +51,7 @@ class Account(AbstractBaseUser):
     is_admin = models.BooleanField(default=False)
     date_joined = models.DateTimeField(default=timezone.now)
     login_date = models.DateTimeField(default=timezone.now)
+    image = models.ImageField(upload_to="user", null=True)
 
     objects = AccountManager()
 
@@ -68,3 +69,9 @@ class Account(AbstractBaseUser):
     @property
     def is_superuser(self):
         return self.is_admin
+    def __str__(self):
+        return f"{self.id}:{self.username}"
+class OnlineUser(models.Model):
+    user = models.OneToOneField(Account, on_delete=models.CASCADE)
+    def __str__(self):
+        return self.user.username
