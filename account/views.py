@@ -9,6 +9,8 @@ from rest_framework.validators import ValidationError
 from rest_framework.response import Response
 from .models import Account
 from .serializers import AccountSerializer
+from rest_framework.generics import CreateAPIView, ListAPIView
+from rest_framework.pagination import LimitOffsetPagination
 
 class TokenObtainView(jwt_views.TokenObtainPairView):
     """
@@ -119,6 +121,7 @@ class GetAccountInfo(APIView):
 
     def get(self, request):
         return Response(data={
+            "id":request.user.id,
             'username': request.user.username,
         },
             status=status.HTTP_200_OK
@@ -130,9 +133,9 @@ class GetAccountStatus(APIView):
     permission_classes = [permissions.AllowAny]
     authentication_classes = []
     def get(self, request):
-        if request.COOKIES.get('access_token'):
+        if request.COOKIES.get('access_token') and request.user is not None:
             # cookieが存在する場合
-            return Response({
+            return Response({   
                 'status': 1,
             }, status=status.HTTP_200_OK)
         else:
@@ -140,3 +143,20 @@ class GetAccountStatus(APIView):
             return Response({
                 'status': 0,
             }, status=status.HTTP_200_OK)
+
+class UserView(ListAPIView):
+	queryset = Account.objects.all().order_by('username')
+	serializer_class = AccountSerializer
+	pagination_class = LimitOffsetPagination
+
+	def get_queryset(self):
+		excludeUsersArr = []
+		try:
+			excludeUsers = self.request.query_params.get('exclude')
+			if excludeUsers:
+				userIds = excludeUsers.split(',')
+				for userId in userIds:
+					excludeUsersArr.append(int(userId))
+		except:
+			return []
+		return super().get_queryset().exclude(id__in=excludeUsersArr)
