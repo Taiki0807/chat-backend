@@ -33,6 +33,7 @@ ALLOWED_HOSTS = [os.environ.get('ALLOWED_HOSTS')]
 # Application definition
 
 INSTALLED_APPS = [
+    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -45,6 +46,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'account',
     'chat',
+    'channels',
 ]
 REST_FRAMEWORK = {
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
@@ -84,6 +86,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'config.wsgi.application'
+ASGI_APPLICATION = 'config.asgi.application'
 
 
 # Database
@@ -99,7 +102,11 @@ DATABASES = {
         'PORT': 5432,
     }
 }
-
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer"
+    }
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
@@ -149,6 +156,7 @@ CORS_ALLOW_CREDENTIALS = True
 SESSION_COOKIE_SAMESITE = 'None'
 # CORS(クロスドメインリクエスト)でCookieを送信することを許可
 CORS_ALLOW_CREDENTIALS = True
+CSRF_TRUSTED_ORIGINS = ['https://chat-api.hosokawa-lab.jp']
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.1/topics/i18n/
