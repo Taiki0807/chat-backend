@@ -7,7 +7,7 @@ class AccountSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Account
-        fields = ['username', 'password','image']
+        fields = ['id','username', 'password','image']
 
     def create(self, validated_data):
         user = Account(
