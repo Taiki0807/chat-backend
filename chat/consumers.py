@@ -27,16 +27,17 @@ class ChatConsumer(AsyncWebsocketConsumer):
 	def saveMessage(self, message, userId, roomId):
 		userObj = Account.objects.get(id=userId)
 		chatObj = ChatRoom.objects.get(roomId=roomId)
+		user_image = userObj.image if userObj.image else None
 		chatMessageObj = ChatMessage.objects.create(
-			chat=chatObj, user=userObj, message=message
+			chat=chatObj, user=userObj, message=message, image=user_image
 		)
 		return {
 			'action': 'message',
 			'user': userId,
 			'roomId': roomId,
 			'message': message,
-			'userImage': userObj.image.url,
-			'userName': userObj.first_name + " " + userObj.last_name,
+			'userImage': user_image,
+			'userName': userObj.username,
 			'timestamp': str(chatMessageObj.timestamp)
 		}
 
