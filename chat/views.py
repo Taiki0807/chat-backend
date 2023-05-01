@@ -24,11 +24,9 @@ class ChatRoomView(APIView):
 			serializer.save()
 			return Response(serializer.data, status=status.HTTP_200_OK)
 		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-class MessagesView(ListAPIView):
-	serializer_class = ChatMessageSerializer
-	pagination_class = LimitOffsetPagination
-
-	def get_queryset(self):
-		roomId = self.kwargs['roomId']
-		return ChatMessage.objects.filter(chat__roomId=roomId).order_by('-timestamp')
+class MessagesView(APIView):
+    def get(self, request, roomId):
+        chat_room = ChatRoom.objects.get(roomId=roomId)
+        chat_messages = ChatMessage.objects.filter(chat=chat_room).order_by('-timestamp')
+        data = ChatMessageSerializer(chat_messages, many=True).data
+        return Response({"chatRoomName": chat_room.name, "results": data})
