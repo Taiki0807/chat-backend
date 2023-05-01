@@ -16,6 +16,7 @@ class ChatMessage(models.Model):
 	user = models.ForeignKey(Account, on_delete=models.SET_NULL, null=True)
 	message = models.CharField(max_length=255)
 	timestamp = models.DateTimeField(auto_now_add=True)
+	image = models.URLField('URL', max_length=1000, blank=True, null=True)
 
 	def __str__(self):
 		return self.message

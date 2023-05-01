@@ -51,7 +51,7 @@ class Account(AbstractBaseUser):
     is_admin = models.BooleanField(default=False)
     date_joined = models.DateTimeField(default=timezone.now)
     login_date = models.DateTimeField(default=timezone.now)
-    image = models.ImageField(upload_to="user", null=True)
+    image = models.URLField('URL', max_length=1000, blank=True, null=True)
 
     objects = AccountManager()
 

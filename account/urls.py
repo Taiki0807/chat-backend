@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework import routers
-from .views import TokenObtainView,TokenDeleteView,TokenRefreshView,AccountRegister,GetAccountInfo,refresh_get,GetAccountStatus
+from .views import TokenObtainView,TokenDeleteView,TokenRefreshView,AccountRegister,GetAccountInfo,refresh_get,GetAccountStatus,ImageRegisterAPIView
 
 urlpatterns = [
     path('register/', AccountRegister.as_view()),
@@ -10,4 +10,5 @@ urlpatterns = [
     path('refresh/', TokenRefreshView.as_view()),
     path('status/', GetAccountStatus.as_view()),
     path('refresh-token/', refresh_get),
+    path('image/post/', ImageRegisterAPIView.as_view(), name="imageRegister"),
 ]
