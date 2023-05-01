@@ -146,9 +146,11 @@ SIMPLE_JWT = {
 CORS_ORIGIN_WHITELIST = [
     'http://127.0.0.1:3000',
     'http://localhost:3000',
-    'http://localhost:3001',
+    'https://localhost:3001',
     'http://127.0.0.1:3001',
     'http://localhost:6006',
+    'https://chat-steel-six.vercel.app',
+    'https://chat.hosokawa-lab.jp',
 ]
 # レスポンスを公開する
 CORS_ALLOW_CREDENTIALS = True
@@ -157,6 +159,8 @@ SESSION_COOKIE_SAMESITE = 'None'
 # CORS(クロスドメインリクエスト)でCookieを送信することを許可
 CORS_ALLOW_CREDENTIALS = True
 CSRF_TRUSTED_ORIGINS = ['https://chat-api.hosokawa-lab.jp']
+MEDIA_URL = "http://localhost:8000/media/"
+MEDIA_ROOT = BASE_DIR / "media"
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.1/topics/i18n/
