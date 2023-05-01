@@ -11,6 +11,10 @@ from .models import Account
 from .serializers import AccountSerializer
 from rest_framework.generics import CreateAPIView, ListAPIView
 from rest_framework.pagination import LimitOffsetPagination
+import jwt
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from django.core.files.storage import default_storage
+from rest_framework.parsers import MultiPartParser, FormParser
 
 class TokenObtainView(jwt_views.TokenObtainPairView):
     """
@@ -117,32 +121,59 @@ class GetAccountInfo(APIView):
     """
     アカウント情報を取得する
     """
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
+    
+    def get(self, request):
+        jwt_token = request.COOKIES["access_token"]
+        if not jwt_token:
+            return Response(
+                {"error": "No Token"}, status=status.HTTP_400_BAD_REQUEST
+            )
+        try:
+            payload = jwt.decode(
+                jwt_token, settings.SECRET_KEY, algorithms=["HS256"]
+            )
+            # もしくはreturn payload["user_id"]でもありだそうな。
+            loginuser = Account.objects.get(id=payload["user_id"])
+            # オブジェクトで返ってくるのでStringならエラーハンドリング
+            if type(loginuser) == str:
+                return Response(
+                    {"error": " Expecting an Object type, but it returned a String type."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            # アクティブチェック
+            if loginuser.is_active:
+                # 通常、generics.CreateAPIView系統はこの処理をしなくてもいい
+                # しかしtry-exceptの処理かつ、オーバーライドしているせいかResponse()で返せとエラーが出るので以下で処理
+                response = AccountSerializer(self.request.user)
+                return Response(response.data, status=status.HTTP_200_OK)
+            return Response(
+                {"error": "user is not active"}, status=status.HTTP_400_BAD_REQUEST
+            )
+        except jwt.ExpiredSignatureError:
+            return "Activations link expired"
+        # 不正なToken
+        except jwt.exceptions.DecodeError:
+            return "Invalid Token"
+        # ユーザーが存在しない
+        except Account.DoesNotExist:
+            payload = jwt.decode(
+                jwt_token, settings.SECRET_KEY, algorithms=["HS256"]
+            )
+            return payload["user_id"]
+
+class GetAccountStatus(APIView):
+    permission_classes = [permissions.AllowAny]
 
     def get(self, request):
-        return Response(data={
-            "id":request.user.id,
-            'username': request.user.username,
-        },
-            status=status.HTTP_200_OK
-        )
-class GetAccountStatus(APIView):
-    """
-    状態を取得
-    """
-    permission_classes = [permissions.AllowAny]
-    authentication_classes = []
-    def get(self, request):
-        if request.COOKIES.get('access_token') and request.user is not None:
-            # cookieが存在する場合
-            return Response({   
-                'status': 1,
-            }, status=status.HTTP_200_OK)
+        # 認証に成功した場合は、ユーザーオブジェクトがrequest.userに設定される
+        if 'access_token' in request.COOKIES:
+            if request.user is not None:
+                return Response({'status': 1}, status=status.HTTP_200_OK)
+            else:
+                return Response({'status': 0}, status=status.HTTP_200_OK)
         else:
-            # cookieが存在しない場合
-            return Response({
-                'status': 0,
-            }, status=status.HTTP_200_OK)
+            return Response({'status': 0}, status=status.HTTP_200_OK)
 
 class UserView(ListAPIView):
 	queryset = Account.objects.all().order_by('username')
@@ -160,3 +191,12 @@ class UserView(ListAPIView):
 		except:
 			return []
 		return super().get_queryset().exclude(id__in=excludeUsersArr)
+
+class ImageRegisterAPIView(APIView):
+    parser_classes = [FormParser, MultiPartParser]
+
+    def post(self, request, *args, **kwargs):
+        upload_file = request.data["image"]
+        file_name = default_storage.save(upload_file.name, upload_file)
+        object_url = f'{default_storage.url(file_name)}'
+        return Response({"success": 1, "file" : { "url": object_url }}, status.HTTP_201_CREATED)
